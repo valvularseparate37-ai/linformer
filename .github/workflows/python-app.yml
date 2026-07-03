@@ -1,0 +1,116 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
+$ pip install linformer
+import torch
+from linformer import LinformerLM
+
+model = LinformerLM(
+    num_tokens = 20000,
+    dim = 512,
+    seq_len = 4096,
+    depth = 12,
+    heads = 8,
+    dim_head = 128,        # be able to set the dimension of each head in multi-head attention
+    k = 256,               # this is the k that the key/values are projected to along the sequence dimension
+    one_kv_head = True,    # share one key/value head across all heads
+    share_kv = False,      # share the same projection for keys and values
+    reversible = True      # make network reversible, like Reformer
+)
+
+x = torch.randint(0, 20000, (1, 4096))
+model(x) # (1, 4096, 20000)
+import torch
+from linformer import Linformer
+
+model = Linformer(
+    dim = 512,
+    seq_len = 4096,
+    depth = 12,
+    heads = 8,
+    k = 256,
+    one_kv_head = True,
+    share_kv = True
+)
+
+x = torch.randn(1, 4096, 512)
+model(x) # (1, 4096, 512)
+import torch
+from linformer import LinformerSelfAttention
+
+attn = LinformerSelfAttention(
+    dim = 512,
+    seq_len = 4096,
+    heads = 8,
+    k = 256,
+    one_kv_head = True,
+    share_kv = True
+)
+
+x = torch.randn(1, 4096, 512)
+attn(x) # (1, 4096, 512)
+import torch
+from linformer import LinformerSelfAttention
+
+attn = LinformerSelfAttention(
+    dim = 512,
+    seq_len = 8192,
+    heads = 8,
+    k = 256,
+    one_kv_head = True,
+    share_kv = True
+)
+
+x = torch.randn(1, 2048, 512)
+context = torch.randn(1, 8192, 512)
+attn(x, context) # (1, 2048, 512)
+@misc{wang2020linformer,
+    title={Linformer: Self-Attention with Linear Complexity},
+    author={Sinong Wang and Belinda Z. Li and Madian Khabsa and Han Fang and Hao Ma},
+    year={2020},
+    eprint={2006.04768},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}@inproceedings{kitaev2020reformer,
+    title       = {Reformer: The Efficient Transformer},
+    author      = {Nikita Kitaev and Lukasz Kaiser and Anselm Levskaya},
+    booktitle   = {International Conference on Learning Representations},
+    year        = {2020},
+    url         = {https://openreview.net/forum?id=rkgNKkHtvB}
+}
